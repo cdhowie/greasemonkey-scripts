@@ -48,7 +48,6 @@
     }
 
     document.addEventListener('keydown', e => {
-        console.log(e);
         if (!e.ctrlKey && !e.shiftKey && e.altKey && !e.metaKey && e.key === ';') {
             selectAudioDevice();
         }
