@@ -157,9 +157,9 @@
 
     const observer = new MutationObserver(() => {
         if (document.querySelector('.' + configUi.className) === null) {
-            const online = document.querySelector('[data-a-target="online-dropdown-button"]');
+            const online = document.querySelector('[data-test-selector="user-menu-dropdown__avatar"]');
             if (online !== null) {
-                const ipoint = online.parentNode.parentNode.parentNode.parentNode;
+                const ipoint = online.parentNode.parentNode.parentNode.parentNode.parentNode;
                 ipoint.appendChild(configUi);
             }
         }
