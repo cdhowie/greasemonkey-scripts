@@ -56,14 +56,9 @@
     configUi.appendChild(configIdle);
     configIdle.appendChild(document.createTextNode('Sleep timer: '));
 
-    const configTime = element('select', { style: { float: 'right' } });
-    [['None', 0], ['30 minutes', 30], ['1 hour', 60], ['2 hours', 120], ['4 hours', 240]].forEach(entry => {
-        const option = element('option', { value: entry[1] });
-        option.appendChild(document.createTextNode(entry[0]));
-        configTime.appendChild(option);
-    });
+    const configTimeContainer = element('span', { style: { float: 'right' } });
 
-    configIdle.appendChild(configTime);
+    configIdle.appendChild(configTimeContainer);
 
     const configActive = element('div');
     configUi.appendChild(configActive);
@@ -127,7 +122,6 @@
         } else {
             configActive.style.display = 'none';
             configIdle.style.display = '';
-            configTime.value = 0;
         }
     }
 
@@ -138,15 +132,6 @@
 
     setInterval(() => { applyState(getState()); }, 1000);
 
-    listen(configTime, 'change', () => {
-        if (configTime.value !== 0) {
-            const state = getState();
-            state.stopAt = Date.now() + (1000 * 60 * configTime.value);
-
-            setState(state);
-        }
-    });
-
     listen(configActiveStop, 'click', event => {
         const state = getState();
         delete state.stopAt;
@@ -155,10 +140,48 @@
         event.stopPropagation();
     });
 
+    function makeOption(label, value) {
+        const option = element('option', { value });
+        option.appendChild(document.createTextNode(label));
+        return option;
+    }
+
+    function updateTimeSelector() {
+        empty(configTimeContainer);
+
+        const configTime = element('select', { style: { float: 'right' } });
+        configTime.appendChild(makeOption("None", 0));
+
+        let startDate = new Date();
+        let min = startDate.getMinutes();
+        startDate.setMinutes(min - (min % 15) + 15, 0, 0);
+
+        for (let i = 0; i < 4 * 12; i += 1) {
+            configTime.appendChild(makeOption(
+                startDate.toLocaleTimeString(undefined, { timeStyle: "short" }),
+                startDate.getTime()
+            ));
+
+            startDate.setMinutes(startDate.getMinutes() + 15);
+        }
+
+        listen(configTime, 'change', () => {
+            if (configTime.value !== 0) {
+                const state = getState();
+                state.stopAt = configTime.value;
+
+                setState(state);
+            }
+        });
+
+        configTimeContainer.appendChild(configTime);
+    }
+
     const observer = new MutationObserver(() => {
         if (document.querySelector('.' + configUi.className) === null) {
             const online = document.querySelector('[data-test-selector="user-menu-dropdown__avatar"]');
             if (online !== null) {
+                updateTimeSelector();
                 const ipoint = online.parentNode.parentNode.parentNode.parentNode.parentNode;
                 ipoint.appendChild(configUi);
             }
